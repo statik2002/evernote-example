@@ -9,7 +9,7 @@ from config import Settings
 
     
 def get_notebook_list(note_store, notebook_guid, number=10, offset=0):
-    _filter = NoteStore.NoteFilter(notebookGuid=notebook_guid)
+    filter = NoteStore.NoteFilter(notebookGuid=notebook_guid)
     resultSpec = NoteStore.NotesMetadataResultSpec(
         includeTitle=True,
         includeContentLength=True,
@@ -17,15 +17,14 @@ def get_notebook_list(note_store, notebook_guid, number=10, offset=0):
         includeUpdated=True,
         includeDeleted=False,
         includeUpdateSequenceNum=True,
-        includeNotebookGuid=False,
+        includeNotebookGuid=True,
         includeTagGuids=True,
         includeAttributes=True,
         includeLargestResourceMime=True,
         includeLargestResourceSize=True,
     )
 
-    # this determines which info you'll get for each note
-    return note_store.findNotesMetadata(_filter, offset, number, resultSpec);
+    return note_store.findNotesMetadata(note_store.token, filter, offset, number, resultSpec)
 
 
 if __name__ == '__main__':
@@ -45,12 +44,14 @@ if __name__ == '__main__':
     )
     note_store = client.get_note_store()
 
+    print(note_store.getDefaultNotebook())
+
     notes = get_notebook_list(note_store, config.INBOX_NOTEBOOK_GUID, args.number).notes
 
-    # print('Notes', notes)
+    print('Notes', notes)
     
     for counter, note in enumerate(notes, start=1):
         print('\n--------- %s ---------' % counter)
-        content = note_store.getNoteContent(note.guid)  # kwargs will be skipped by api because of bug
+        content = note_store.getNoteContent(note.guid)
         soup = BeautifulSoup(content, "html.parser")
         print(soup.get_text())
